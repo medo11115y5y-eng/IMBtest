@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>IMB Module Simulator - 6th of October Uni</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Cairo', sans-serif; background-color: #f3f4f6; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+        .golden-gradient { background: linear-gradient(135deg, #d4af37, #f3e5ab, #d4af37); color: #000; }
+        .card { background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); padding: 20px; }
+        .btn-option { display: block; width: 100%; text-align: right; padding: 12px 16px; margin-bottom: 10px; border: 2px solid #e5e7eb; border-radius: 8px; font-weight: 600; transition: all 0.2s; cursor: pointer; background: white; }
+        .btn-option:hover { border-color: #3b82f6; background: #eff6ff; }
+        .btn-option.correct { border-color: #10b981; background: #d1fae5; color: #065f46; }
+        .btn-option.wrong { border-color: #ef4444; background: #fee2e2; color: #991b1b; }
+        .hidden { display: none !important; }
+        .basmaga-row:hover { background-color: #fef3c7; }
+        /* Bottom Navigation for Mobile */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: white; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); display: flex; justify-content: space-around; padding: 10px 0; z-index: 50; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; font-size: 12px; color: #6b7280; cursor: pointer; }
+        .nav-item.active { color: #2563eb; font-weight: bold; }
+        .nav-item i { font-size: 20px; margin-bottom: 4px; }
+    </style>
+</head>
+<body class="pb-20">
+
+    <!-- Header -->
+    <header class="bg-blue-600 text-white p-4 shadow-md sticky top-0 z-40">
+        <div class="container mx-auto flex justify-between items-center">
+            <div>
+                <h1 class="text-xl font-bold">IMB Simulator 🧬</h1>
+                <p class="text-xs text-blue-200">Dr. Mohamed - O6U Med</p>
+            </div>
+            <div id="score-badge" class="bg-blue-800 px-3 py-1 rounded-full text-sm font-bold shadow-inner">
+                XP: 0
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="container mx-auto p-4 mt-4" id="main-content">
+        
+        <!-- View: Home -->
+        <div id="view-home" class="view-section">
+            <div class="card text-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">أهلاً بك يا دكتور محمد 🩺</h2>
+                <p class="text-gray-600">اختر نظام المذاكرة وابدأ التقفيل</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div onclick="switchView('view-practice')" class="card bg-blue-50 border-r-4 border-blue-500 cursor-pointer hover:shadow-lg transition">
+                    <h3 class="text-lg font-bold text-blue-700"><i class="fas fa-dumbbell ml-2"></i> وضع التدريب</h3>
+                    <p class="text-sm text-gray-600 mt-1">حل الأسئلة مع تصحيح فوري وشرح لكل سؤال.</p>
+                </div>
+                <div onclick="switchView('view-vip')" class="card golden-gradient cursor-pointer hover:shadow-lg transition transform hover:-translate-y-1">
+                    <h3 class="text-lg font-bold"><i class="fas fa-star ml-2"></i> VIP Midterm 2026</h3>
+                    <p class="text-sm mt-1">أهم الأسئلة والتجميعات الذهبية لدكتور أحمد حسام.</p>
+                </div>
+                <div onclick="switchView('view-basmaga')" class="card bg-purple-50 border-r-4 border-purple-500 cursor-pointer hover:shadow-lg transition">
+                    <h3 class="text-lg font-bold text-purple-700"><i class="fas fa-magic ml-2"></i> البصمجة السحرية</h3>
+                    <p class="text-sm text-gray-600 mt-1">اربط الكلمات المفتاحية بالإجابة عشان متنساش أبداً.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- View: Practice -->
+        <div id="view-practice" class="view-section hidden">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold text-gray-800">التدريب الفوري</h2>
+                <span id="question-counter" class="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm">1 / 20</span>
+            </div>
+            
+            <div class="card mb-4" id="quiz-card">
+                <p id="q-text" class="text-lg font-bold text-gray-800 mb-4" dir="ltr"></p>
+                <div id="options-container"></div>
+                
+                <!-- Explanation Box -->
+                <div id="explanation-box" class="mt-4 p-4 rounded-lg bg-blue-50 border border-blue-200 hidden">
+                    <p id="exp-text" class="text-sm text-gray-700 font-semibold"></p>
+                </div>
+                
+                <!-- Basmaga Hint Button -->
+                <button id="btn-hint" class="mt-4 w-full bg-purple-100 text-purple-700 border border-purple-300 py-2 rounded-lg font-bold hidden hover:bg-purple-200" onclick="showBasmagaHint()">
+                    <i class="fas fa-lightbulb ml-1"></i> بصمج السؤال ده!
+                </button>
+            </div>
+            
+            <div class="flex justify-between">
+                <button onclick="nextQuestion()" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold shadow hover:bg-blue-700 w-full">السؤال التالي <i class="fas fa-chevron-left mr-2"></i></button>
+            </div>
+        </div>
+
+        <!-- View: VIP Questions -->
+        <div id="view-vip" class="view-section hidden">
+            <div class="card golden-gradient mb-6 text-center">
+                <h2 class="text-2xl font-bold"><i class="fas fa-crown"></i> بنك أسئلة الـ VIP</h2>
+                <p class="text-sm mt-1">تجميعة الميدتيرم 2026 - O6U</p>
+                <button onclick="startVipMode()" class="mt-4 bg-black text-white px-6 py-2 rounded-full font-bold shadow-lg hover:bg-gray-800">
+                    ابدأ حل الـ VIP الآن
+                </button>
+            </div>
+            <!-- VIP List generated by JS -->
+            <div id="vip-list-container" class="space-y-4"></div>
+        </div>
+
+        <!-- View: Basmaga Hub -->
+        <div id="view-basmaga" class="view-section hidden">
+            <div class="card mb-4 text-center border-t-4 border-purple-500">
+                <h2 class="text-xl font-bold text-purple-700"><i class="fas fa-bolt text-yellow-500"></i> جدول البصمجة السحرية</h2>
+                <p class="text-sm text-gray-600 mt-2">الكلمة المفتاحية اللي هتشوفها في السؤال، تختار الإجابة دي فوراً!</p>
+            </div>
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <table class="w-full text-right">
+                    <thead class="bg-purple-100 text-purple-800">
+                        <tr>
+                            <th class="p-3">الكلمة المفتاحية 🎯</th>
+                            <th class="p-3">الإجابة الذهبية ⚡</th>
+                            <th class="p-3">السر 🧠</th>
+                        </tr>
+                    </thead>
+                    <tbody id="basmaga-tbody" class="text-sm divide-y divide-gray-100">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <div class="nav-item active" id="nav-home" onclick="switchView('view-home')">
+            <i class="fas fa-home"></i>
+            <span>الرئيسية</span>
+        </div>
+        <div class="nav-item" id="nav-practice" onclick="switchView('view-practice'); initQuiz(normalDB);">
+            <i class="fas fa-dumbbell"></i>
+            <span>تدريب</span>
+        </div>
+        <div class="nav-item text-yellow-600" id="nav-vip" onclick="switchView('view-vip')">
+            <i class="fas fa-star"></i>
+            <span>VIP</span>
+        </div>
+        <div class="nav-item text-purple-600" id="nav-basmaga" onclick="switchView('view-basmaga'); renderBasmaga();">
+            <i class="fas fa-magic"></i>
+            <span>بصمجة</span>
+        </div>
+    </nav>
+
+    <script>
+        // --- 1. Database (The Questions) ---
+        const vipDB = [
+            { q: "AUG is the codon of which of the followings?", options: ["Valine", "Methionine", "Leucine", "Tryptophan"], ans: 1, exp: "AUG is the universal start codon and always codes for Methionine.", basmaga: "اول ما تشوف AUG اختار Methionine علطول (حرف الـ M بيحب الـ A)" },
+            { q: "Cytochrome c enzyme role in apoptosis:", options: ["Inhibits DNA replication", "Activated by BAX gene", "Stimulates protein synthesis", "Inhibits caspase"], ans: 1, exp: "BAX promotes apoptosis by releasing Cytochrome c from mitochondria.", basmaga: "Cytochrome c = صاحبه BAX اللي بيعمل Apoptosis" },
+            { q: "Familial adenomatous polyposis (FAP) is due to:", options: ["Mutation of APC gene", "Mutation of p53 gene", "Mutation of RAS gene", "Mutation of transcription"], ans: 0, exp: "FAP is strongly linked to mutations in the APC tumor suppressor gene.", basmaga: "Polyposis (FAP) = APC gene (كلمتين كبار بيحبوا بعض)" },
+            { q: "In eukaryotes the down regulation of enzyme ........ leads to aging", options: ["DNA polymerase", "RNA polymerase", "Telomerase", "Helicase"], ans: 2, exp: "Telomerase shortening/down-regulation is the primary molecular clock for aging.", basmaga: "Aging (عجز) = Telomerase (التيلومير قصر)" },
+            { q: "Nucleotide consists of:", options: ["Nitrogenous base and phosphate", "Ribose and phosphate", "Nitrogenous base, Ribose and phosphate", "Nitrogenous base and Ribose"], ans: 2, exp: "NucleoTide = Base + Sugar (Ribose) + PhosphaTe (T for Three things).", basmaga: "NucleoTide بحرف الـ T = 3 حاجات (سكر + قاعدة + فوسفات)" }
+        ];
+
+        const normalDB = [
+            ...vipDB, // Included for standard practice
+            { q: "Which of the following compounds act as a methyl donor?", options: ["ATP", "cAMP", "SAM", "PAPS"], ans: 2, exp: "S-adenosylmethionine (SAM) is the major methyl donor in the body.", basmaga: "Methyl donor = عمك SAM" },
+            { q: "Guanine base pairing with cytosine in DNA results in:", options: ["bind sigma factor", "bound with 2 hydrogen bonds", "melting point higher than AT", "melting point lower"], ans: 2, exp: "G-C has 3 hydrogen bonds, requiring more energy (higher Tm) to melt than A-T.", basmaga: "G-C = 3 روابط = حرارة أعلى (Melting point higher)" },
+            { q: "Okazaki fragments are formed during the synthesis of:", options: ["mRNA", "tRNA", "DNA", "rRNA"], ans: 2, exp: "Okazaki fragments are short sequences synthesized on the lagging strand during DNA replication.", basmaga: "Okazaki = DNA Replication (Lagging strand)" }
+        ];
+
+        const basmagaData = [
+            { trigger: "AUG Codon", answer: "Methionine", secret: "البداية دايماً M" },
+            { trigger: "Methyl Donor", answer: "SAM", secret: "عمك سام بيتبرع بالميثيل" },
+            { trigger: "Aging (الشيخوخة)", answer: "Telomerase", secret: "التيلومير بيقصر كل ما نكبر" },
+            { trigger: "Cytochrome C", answer: "Activated by BAX", secret: "باكس بيكسر الميتوكوندريا يطلعه" },
+            { trigger: "FAP Disease", answer: "APC gene", secret: "FAP معاها APC" },
+            { trigger: "NucleoTide", answer: "Base + Ribose + Phosphate", secret: "حرف الـ T يعني Three (3 حاجات)" },
+            { trigger: "NucleoSide", answer: "Base + Ribose ONLY", secret: "حرف الـ S يعني Sugar + Base فقط" },
+            { trigger: "G-C rich area", answer: "Higher Melting Point", secret: "عشان بينهم 3 روابط بيبقوا أقوى" }
+        ];
+
+        // --- 2. App State ---
+        let currentDB = [];
+        let currIndex = 0;
+        let score = 0;
+        let isAnswered = false;
+
+        // --- 3. UI Functions ---
+        function switchView(viewId) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+            document.getElementById(viewId).classList.remove('hidden');
+            
+            // Update Nav Icons
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            let navId = 'nav-' + viewId.replace('view-', '');
+            if(document.getElementById(navId)) document.getElementById(navId).classList.add('active');
+        }
+
+        // --- 4. Quiz Logic ---
+        function initQuiz(db) {
+            currentDB = [...db].sort(() => Math.random() - 0.5); // Shuffle
+            currIndex = 0;
+            score = 0;
+            updateScoreBadge();
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            if(currIndex >= currentDB.length) {
+                document.getElementById('q-text').innerHTML = "🎉 عاش يا دكتور! خلصت الأسئلة.";
+                document.getElementById('options-container').innerHTML = `<button onclick="switchView('view-home')" class="btn-option text-center !bg-blue-600 !text-white">العودة للرئيسية</button>`;
+                document.getElementById('explanation-box').classList.add('hidden');
+                document.getElementById('btn-hint').classList.add('hidden');
+                return;
+            }
+
+            isAnswered = false;
+            let q = currentDB[currIndex];
+            document.getElementById('question-counter').innerText = `${currIndex + 1} / ${currentDB.length}`;
+            document.getElementById('q-text').innerText = q.q;
+            document.getElementById('explanation-box').classList.add('hidden');
+            document.getElementById('btn-hint').classList.add('hidden');
+            if(q.basmaga) document.getElementById('btn-hint').classList.remove('hidden');
+
+            let optionsHtml = '';
+            q.options.forEach((opt, idx) => {
+                optionsHtml += `<button onclick="checkAnswer(${idx}, ${q.ans})" class="btn-option" id="opt-${idx}" dir="ltr">${opt}</button>`;
+            });
+            document.getElementById('options-container').innerHTML = optionsHtml;
+        }
+
+        function checkAnswer(selectedIdx, correctIdx) {
+            if(isAnswered) return;
+            isAnswered = true;
+            
+            let q = currentDB[currIndex];
+            document.getElementById(`opt-${correctIdx}`).classList.add('correct');
+            
+            if(selectedIdx === correctIdx) {
+                score += 10;
+                updateScoreBadge();
+            } else {
+                document.getElementById(`opt-${selectedIdx}`).classList.add('wrong');
+            }
+
+            // Show Explanation
+            let expBox = document.getElementById('explanation-box');
+            expBox.classList.remove('hidden');
+            document.getElementById('exp-text').innerText = q.exp;
+            document.getElementById('btn-hint').classList.add('hidden'); // hide hint after answer
+        }
+
+        function nextQuestion() {
+            if(!isAnswered) return; // Prevent skipping
+            currIndex++;
+            renderQuestion();
+        }
+
+        function updateScoreBadge() {
+            document.getElementById('score-badge').innerText = `XP: ${score}`;
+        }
+
+        function showBasmagaHint() {
+            let q = currentDB[currIndex];
+            if(q.basmaga) {
+                alert("💡 بصمجة السريع:\n" + q.basmaga);
+            }
+        }
+
+        // --- 5. VIP & Basmaga Renderers ---
+        function startVipMode() {
+            switchView('view-practice');
+            initQuiz(vipDB);
+        }
+
+        function renderBasmaga() {
+            let tbody = document.getElementById('basmaga-tbody');
+            tbody.innerHTML = '';
+            basmagaData.forEach(item => {
+                tbody.innerHTML += `
+                    <tr class="basmaga-row transition">
+                        <td class="p-3 border-b text-purple-700 font-bold" dir="ltr">${item.trigger}</td>
+                        <td class="p-3 border-b font-semibold text-green-700" dir="ltr">${item.answer}</td>
+                        <td class="p-3 border-b text-gray-600 text-xs">${item.secret}</td>
+                    </tr>
+                `;
+            });
+        }
+        
+        function renderVipList() {
+            let container = document.getElementById('vip-list-container');
+            container.innerHTML = '';
+            vipDB.forEach((q, idx) => {
+                container.innerHTML += `
+                    <div class="card border-l-4 border-yellow-500">
+                        <p class="font-bold text-gray-800" dir="ltr">Q${idx+1}: ${q.q}</p>
+                        <p class="text-green-600 font-semibold mt-2 text-sm" dir="ltr">✅ ${q.options[q.ans]}</p>
+                        <p class="text-gray-500 text-xs mt-1 border-t pt-1">${q.exp}</p>
+                    </div>
+                `;
+            });
+        }
+
+        // Init App
+        window.onload = () => {
+            renderVipList();
+            renderBasmaga();
+        };
+
+    </script>
+</body>
+</html>
